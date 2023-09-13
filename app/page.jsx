@@ -2,9 +2,10 @@ import Link from "next/link"
 
 const LandingPage = () => {
   return (
-    <div className="container h-screen flex justify-center items-center">
+    <div className="h-screen flex flex-col justify-center items-center ">
+        <h1 className="mb-4 text-4xl">BolsosGlam</h1>
       <Link href="/home">
-        <h1 className="bg-gray-400 mb-2 p-4 rounded-md">Iniciar</h1>
+        <h1 className="bg-violet-600  p-4 rounded-2xl text-xl" >INICIAR</h1>
       </Link>
     </div>
   )
