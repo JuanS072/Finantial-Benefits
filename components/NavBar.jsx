@@ -2,11 +2,11 @@ import Link from "next/link";
 
 const NavBar = () => {
   return (
-    <nav className="navbar flex justify-between px-16 mt-4">
+    <nav className="navbar bg-black flex justify-between px-16 py-5 text-gray-200">
       <Link href="/home">
-        <h1>BolsosGlam</h1>
+        <h1 className="text-3xl font-bold">BolsosGlam</h1>
       </Link>
-      <ul className="flex gap-3  text-lg">
+      <ul className="flex gap-5  text-lg">
         <Link href="/home">
           <li>Home</li>
         </Link>
@@ -14,7 +14,7 @@ const NavBar = () => {
           <li>Productos</li>
         </Link>
         <Link href="/sobrenosotros">
-          <li>Sobre Nosotros</li>
+          <li>Nosotros</li>
         </Link>
         <Link href="/contacto">
           <li>Contacto</li>
