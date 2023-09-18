@@ -1,6 +1,12 @@
-const Productos = () => {
+import Card from "@/components/Card"
+import NavBar from "@/components/NavBar"
+
+const Productos = async () => {
   return (
-    <div>Productos</div>
+    <div>
+      <NavBar/>
+      <Card/>
+    </div>
   )
 }
 
