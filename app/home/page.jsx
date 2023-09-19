@@ -1,7 +1,10 @@
+import Card from "@/components/Card"
 
 const HomePage = () => {
   return (
-    <div>page</div>
+    <div>
+      <Card/>
+    </div>
   )
 }
 
