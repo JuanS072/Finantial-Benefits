@@ -9,7 +9,7 @@ const roboto = Roboto({
 });
 
 export const metadata = {
-  title: "BolsosGlam",
+  title: "Bags & Style",
   description: "Bolsos de primera calidad",
 };
 
