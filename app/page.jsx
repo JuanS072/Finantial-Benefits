@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import fondo from "../images/fondo.jpg";
-import logo from "../images/logotipo.png"
+import logo from "../images/logotipo.jpg"
 
 const LandingPage = () => {
   return (
@@ -15,7 +15,7 @@ const LandingPage = () => {
       />
       <div className=" absolute inset-0 flex flex-col justify-center items-center">
         <div className=" bg-black shadow-md shadow-white rounded-full mb-5 flex justify-center items-center">
-          <Image className=" text-5xl w-72  flex justify-center items-center" src={logo}/>
+          <Image className=" text-5xl w-72  flex justify-center items-center rounded-full" src={logo}/>
         </div>
         <div className="mt-2">
           <Link href="/home">
