@@ -1,6 +1,12 @@
+import NavBar from "@/components/NavBar"
+
 const SobreNostroso = () => {
   return (
-    <div>Nosotros</div>
+    
+    <div>
+      <NavBar/>
+      Nosotros
+    </div>
   )
 }
 
