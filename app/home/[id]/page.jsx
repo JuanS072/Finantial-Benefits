@@ -8,11 +8,10 @@ const Products = ({ params }) => {
   const products = [
     {
       dni: "12345678",
-      name: "Fiat Cronos",
+      name: "Sequeira Juan",
       product: "Auto",
-      Precio: "$23.000.000",
-      description: "Fiat Cronos 1.3 Drive",
-      stock: "Disponible",
+      Precio: "Activo",
+      description: "Es programador",
       type: "Auto",
       wsp:"5491139107801"
     },
@@ -29,11 +28,12 @@ const Products = ({ params }) => {
       totalAPagar:5000,
       cantidadCuotas: 4,
       frecuenciaPago: "Mensual",
+      capital:"Juan",
       cuotas: [
-        { monto: 250, fecha: "2024-06-01", estado: "Pagado" },
-        { monto: 250, fecha: "2024-07-01", estado: "Pendiente" },
-        { monto: 250, fecha: "2024-08-01", estado: "Pendiente" },
-        { monto: 250, fecha: "2024-09-01", estado: "Pendiente" },
+        { monto: 250000, fecha: "2024-06-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-07-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-08-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-09-01", estado: "Pagado" },
       ],
     },
   ];
@@ -94,7 +94,6 @@ const Products = ({ params }) => {
       </h2>
       <p className="text-gray-600 mt-1">{products[0].description}</p>
       <p className="text-green-600 font-bold mt-2">{products[0].Precio}</p>
-      <p className="text-sm text-gray-500 mt-1">Stock: {products[0].stock}</p>
 
       <a
         href={`https://wa.me/${products[0].wsp}`}

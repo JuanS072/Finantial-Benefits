@@ -4,20 +4,20 @@ import Modal from "react-modal";
 const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [searchId, setSearchId] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
   const [nuevoPrestamo, setNuevoPrestamo] = useState({
     totalPrestado: "",
     cantidadCuotas: "",
     montoCuota: "",
     frecuenciaPago: "Mensual",
+    capital: "Juan",
   });
 
-  // Manejador de inputs del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNuevoPrestamo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Crear nuevo préstamo
   const handleCrearPrestamo = () => {
     crearPrestamo(nuevoPrestamo);
     setModalIsOpen(false);
@@ -26,15 +26,24 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
       cantidadCuotas: "",
       montoCuota: "",
       frecuenciaPago: "Mensual",
+      capital: "Juan",
     });
   };
 
-  // Búsqueda por ID
-  const filteredCuotas = prestamosData.filter((p) =>
+  const prestamosFiltrados = prestamosData.filter((p) =>
     searchId.trim() === "" ? true : String(p.id).includes(searchId.trim())
   );
 
-  // Actualizar estado de una cuota
+  const cuotasFiltradas = prestamosFiltrados
+    .flatMap((p) =>
+      p.cuotas?.map((cuota, i) => ({
+        ...cuota,
+        prestamoId: p.id,
+        index: i,
+      })) || []
+    )
+    .filter((cuota) => (filtroEstado ? cuota.estado === filtroEstado : true));
+
   const handleEstadoChange = (prestamoId, cuotaIndex, nuevoEstado) => {
     const actualizados = prestamosData.map((prestamo) => {
       if (prestamo.id === prestamoId) {
@@ -46,7 +55,6 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
       return prestamo;
     });
 
-    // Llamar a función del padre si existe
     if (actualizarPrestamos) {
       actualizarPrestamos(actualizados);
     }
@@ -54,7 +62,6 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
 
   return (
     <div className="mt-6 max-w-screen-xl mx-auto px-4">
-      {/* Botón Crear */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setModalIsOpen(true)}
@@ -64,7 +71,31 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
         </button>
       </div>
 
-      {/* Tabla de Préstamos */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="w-full sm:w-1/2">
+          <label className="block font-semibold mb-1">Buscar por ID:</label>
+          <input
+            type="text"
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+            className="w-full px-4 py-2 border rounded"
+          />
+        </div>
+        <div className="w-full sm:w-1/2">
+          <label className="block font-semibold mb-1">Filtrar por Estado:</label>
+          <select
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value)}
+            className="w-full px-4 py-2 border rounded"
+          >
+            <option value="">Todos</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Pagado">Pagado</option>
+            <option value="Vencido">Vencido</option>
+          </select>
+        </div>
+      </div>
+
       <div className="overflow-x-auto mb-10">
         <h2 className="text-xl font-bold mb-4">Préstamos</h2>
         <table className="min-w-full table-auto text-sm text-gray-800">
@@ -75,35 +106,33 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
               <th className="px-4 py-2">Cantidad de Cuotas</th>
               <th className="px-4 py-2">Total A Pagar</th>
               <th className="px-4 py-2">Frecuencia de Pago</th>
+              <th className="px-4 py-2">Capital</th>
+              <th className="px-4 py-2">Estado</th>
             </tr>
           </thead>
           <tbody>
-            {prestamosData.map((prestamo) => (
-              <tr key={prestamo.id} className="border-b">
-                <td className="px-4 py-2">{prestamo.id}</td>
-                <td className="px-4 py-2">{prestamo.totalPrestado}</td>
-                <td className="px-4 py-2">{prestamo.cantidadCuotas}</td>
-                <td className="px-4 py-2">{prestamo.totalAPagar}</td>
-                <td className="px-4 py-2">{prestamo.frecuenciaPago}</td>
-              </tr>
-            ))}
+            {prestamosFiltrados.map((prestamo) => {
+              const cuotasPendientes = prestamo.cuotas?.filter(
+                (cuota) => cuota.estado !== "Pagado"
+              )?.length;
+              const estado = cuotasPendientes > 0 ? "Vigente" : "Finalizado";
+
+              return (
+                <tr key={prestamo.id} className="border-b">
+                  <td className="px-4 py-2">{prestamo.id}</td>
+                  <td className="px-4 py-2">{prestamo.totalPrestado}</td>
+                  <td className="px-4 py-2">{prestamo.cantidadCuotas}</td>
+                  <td className="px-4 py-2">{prestamo.totalAPagar}</td>
+                  <td className="px-4 py-2">{prestamo.frecuenciaPago}</td>
+                  <td className="px-4 py-2">{prestamo.capital}</td>
+                  <td className="px-4 py-2">{estado}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* Buscador */}
-      <div className="mb-4">
-        <label className="block font-semibold mb-2">Buscar por Préstamo ID:</label>
-        <input
-          type="text"
-          value={searchId}
-          onChange={(e) => setSearchId(e.target.value)}
-          placeholder="Ej: 1"
-          className="w-full sm:w-64 px-4 py-2 border rounded"
-        />
-      </div>
-
-      {/* Tabla de Cuotas */}
       <div className="overflow-x-auto mb-10">
         <h2 className="text-xl font-bold mb-4">Cuotas</h2>
         <table className="min-w-full table-auto text-sm text-gray-800">
@@ -117,34 +146,38 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredCuotas.map((prestamo) =>
-              prestamo.cuotas?.map((cuota, index) => (
-                <tr key={`${prestamo.id}-${index}`} className="border-b">
-                  <td className="px-4 py-2">{prestamo.id}</td>
-                  <td className="px-4 py-2">{index + 1}</td>
-                  <td className="px-4 py-2">{cuota.monto}</td>
-                  <td className="px-4 py-2">{cuota.fecha}</td>
-                  <td className="px-4 py-2">
-                    <select
-                      value={cuota.estado}
-                      onChange={(e) =>
-                        handleEstadoChange(prestamo.id, index, e.target.value)
-                      }
-                      className="border rounded px-2 py-1"
-                    >
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Pagado">Pagado</option>
-                      <option value="Vencido">Vencido</option>
-                    </select>
-                  </td>
-                </tr>
-              ))
-            )}
+            {cuotasFiltradas.map((cuota) => (
+              <tr
+                key={`${cuota.prestamoId}-${cuota.index}`}
+                className="border-b"
+              >
+                <td className="px-4 py-2">{cuota.prestamoId}</td>
+                <td className="px-4 py-2">{cuota.index + 1}</td>
+                <td className="px-4 py-2">{cuota.monto}</td>
+                <td className="px-4 py-2">{cuota.fecha}</td>
+                <td className="px-4 py-2">
+                  <select
+                    value={cuota.estado}
+                    onChange={(e) =>
+                      handleEstadoChange(
+                        cuota.prestamoId,
+                        cuota.index,
+                        e.target.value
+                      )
+                    }
+                    className="border rounded px-2 py-1"
+                  >
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="Pagado">Pagado</option>
+                    <option value="Vencido">Vencido</option>
+                  </select>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Modal de creación */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
@@ -205,6 +238,18 @@ const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
             >
               <option value="Mensual">Mensual</option>
               <option value="Semanal">Semanal</option>
+            </select>
+          </div>
+          <div>
+            <label>Capital:</label>
+            <select
+              name="capital"
+              value={nuevoPrestamo.capital}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded"
+            >
+              <option value="Juan">Juan</option>
+              <option value="Enzo">Enzo</option>
             </select>
           </div>
         </div>
