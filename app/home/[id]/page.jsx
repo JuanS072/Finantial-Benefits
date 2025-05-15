@@ -21,12 +21,7 @@ const Products = ({ params }) => {
   
 
   // Ejemplo de cuotas (simulando que las cuotas son de diferentes clientes)
-  const cuotasData = [
-    { numero: 1, vencimiento: "2024-01-10", monto: "$100.000", estado: "Pagado", dni: "12345678" },
-    { numero: 2, vencimiento: "2024-02-10", monto: "$100.000", estado: "Impago", dni: "12345678" },
-    { numero: 3, vencimiento: "2024-03-10", monto: "$100.000", estado: "Pagado", dni: "23456789" },
-    { numero: 4, vencimiento: "2024-04-10", monto: "$100.000", estado: "Impago", dni: "12345678" },
-  ];
+  
   const prestamosData = [
     {
       id: 1,
@@ -116,7 +111,7 @@ const Products = ({ params }) => {
   {/* Componente CuotasTable debajo de la carta principal */}
   <div className="w-full sm:max-w-lg lg:max-w-xl">
     <CuotasTable
-      cuotasData={cuotasData}
+      
       prestamosData={prestamosData}
       crearPrestamo={crearPrestamo}
       dniCliente={products[0].dni}

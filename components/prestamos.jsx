@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 
-const CuotasTable = ({ prestamosData, crearPrestamo }) => {
+const CuotasTable = ({ prestamosData, crearPrestamo, actualizarPrestamos }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [searchId, setSearchId] = useState("");
   const [nuevoPrestamo, setNuevoPrestamo] = useState({
@@ -11,14 +11,13 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
     frecuenciaPago: "Mensual",
   });
 
+  // Manejador de inputs del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNuevoPrestamo((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setNuevoPrestamo((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Crear nuevo préstamo
   const handleCrearPrestamo = () => {
     crearPrestamo(nuevoPrestamo);
     setModalIsOpen(false);
@@ -30,13 +29,32 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
     });
   };
 
+  // Búsqueda por ID
   const filteredCuotas = prestamosData.filter((p) =>
     searchId.trim() === "" ? true : String(p.id).includes(searchId.trim())
   );
 
+  // Actualizar estado de una cuota
+  const handleEstadoChange = (prestamoId, cuotaIndex, nuevoEstado) => {
+    const actualizados = prestamosData.map((prestamo) => {
+      if (prestamo.id === prestamoId) {
+        const nuevasCuotas = prestamo.cuotas.map((cuota, i) =>
+          i === cuotaIndex ? { ...cuota, estado: nuevoEstado } : cuota
+        );
+        return { ...prestamo, cuotas: nuevasCuotas };
+      }
+      return prestamo;
+    });
+
+    // Llamar a función del padre si existe
+    if (actualizarPrestamos) {
+      actualizarPrestamos(actualizados);
+    }
+  };
+
   return (
     <div className="mt-6 max-w-screen-xl mx-auto px-4">
-      {/* Botón para crear préstamo */}
+      {/* Botón Crear */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setModalIsOpen(true)}
@@ -55,7 +73,7 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
               <th className="px-4 py-2">Préstamo ID</th>
               <th className="px-4 py-2">Total Prestado</th>
               <th className="px-4 py-2">Cantidad de Cuotas</th>
-              <th className="px-4 py-2">Total a Pagar</th>
+              <th className="px-4 py-2">Total A Pagar</th>
               <th className="px-4 py-2">Frecuencia de Pago</th>
             </tr>
           </thead>
@@ -106,7 +124,19 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
                   <td className="px-4 py-2">{index + 1}</td>
                   <td className="px-4 py-2">{cuota.monto}</td>
                   <td className="px-4 py-2">{cuota.fecha}</td>
-                  <td className="px-4 py-2">{cuota.estado}</td>
+                  <td className="px-4 py-2">
+                    <select
+                      value={cuota.estado}
+                      onChange={(e) =>
+                        handleEstadoChange(prestamo.id, index, e.target.value)
+                      }
+                      className="border rounded px-2 py-1"
+                    >
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="Pagado">Pagado</option>
+                      <option value="Vencido">Vencido</option>
+                    </select>
+                  </td>
                 </tr>
               ))
             )}
@@ -114,7 +144,7 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
         </table>
       </div>
 
-      {/* Modal para crear préstamo */}
+      {/* Modal de creación */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
@@ -187,7 +217,7 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
           </button>
           <button
             onClick={handleCrearPrestamo}
-            className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
           >
             Crear
           </button>
