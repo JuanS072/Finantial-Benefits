@@ -13,7 +13,8 @@ const Products = ({ params }) => {
       Precio: "$23.000.000",
       description: "Fiat Cronos 1.3 Drive",
       stock: "Disponible",
-      type: "Auto"
+      type: "Auto",
+      wsp:"5491139107801"
     },
   ];
 
@@ -29,31 +30,16 @@ const Products = ({ params }) => {
   const prestamosData = [
     {
       id: 1,
-      totalPrestado: "$500,000",
-      cantidadCuotas: 12,
-      montoCuota: "$41,667",
+      totalPrestado: 1000,
+      totalAPagar:5000,
+      cantidadCuotas: 4,
       frecuenciaPago: "Mensual",
-    },
-    {
-      id: 2,
-      totalPrestado: "$200,000",
-      cantidadCuotas: 6,
-      montoCuota: "$33,333",
-      frecuenciaPago: "Mensual",
-    },
-    {
-      id: 3,
-      totalPrestado: "$1,000,000",
-      cantidadCuotas: 24,
-      montoCuota: "$41,667",
-      frecuenciaPago: "Mensual",
-    },
-    {
-      id: 4,
-      totalPrestado: "$350,000",
-      cantidadCuotas: 18,
-      montoCuota: "$19,444",
-      frecuenciaPago: "Mensual",
+      cuotas: [
+        { monto: 250, fecha: "2024-06-01", estado: "Pagado" },
+        { monto: 250, fecha: "2024-07-01", estado: "Pendiente" },
+        { monto: 250, fecha: "2024-08-01", estado: "Pendiente" },
+        { monto: 250, fecha: "2024-09-01", estado: "Pendiente" },
+      ],
     },
   ];
 
@@ -116,13 +102,13 @@ const Products = ({ params }) => {
       <p className="text-sm text-gray-500 mt-1">Stock: {products[0].stock}</p>
 
       <a
-        href="https://wa.me/5491123456789"
+        href={`https://wa.me/${products[0].wsp}`}
         target="_blank"
         rel="noopener noreferrer"
         className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
       >
         <BiLogoWhatsapp className="text-2xl" />
-        Consultar por WhatsApp
+        Mandar WhatsApp
       </a>
     </div>
   </div>

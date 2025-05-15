@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import Modal from "react-modal";  // Usando una librería para modales como 'react-modal'
+import React, { useState } from "react";
+import Modal from "react-modal";
 
 const CuotasTable = ({ prestamosData, crearPrestamo }) => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [searchId, setSearchId] = useState("");
   const [nuevoPrestamo, setNuevoPrestamo] = useState({
     totalPrestado: "",
     cantidadCuotas: "",
@@ -10,43 +11,52 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
     frecuenciaPago: "Mensual",
   });
 
-  // Manejo de cambios en el modal
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNuevoPrestamo(prevState => ({
-      ...prevState,
+    setNuevoPrestamo((prev) => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  // Función para crear un nuevo préstamo
   const handleCrearPrestamo = () => {
-    crearPrestamo(nuevoPrestamo); // Pasa los datos al componente padre
-    setModalIsOpen(false); // Cerrar modal
-    setNuevoPrestamo({ totalPrestado: "", cantidadCuotas: "", montoCuota: "", frecuenciaPago: "Mensual" }); // Resetear
+    crearPrestamo(nuevoPrestamo);
+    setModalIsOpen(false);
+    setNuevoPrestamo({
+      totalPrestado: "",
+      cantidadCuotas: "",
+      montoCuota: "",
+      frecuenciaPago: "Mensual",
+    });
   };
 
+  const filteredCuotas = prestamosData.filter((p) =>
+    searchId.trim() === "" ? true : String(p.id).includes(searchId.trim())
+  );
+
   return (
-    <div className="mt-6 max-w-screen-lg mx-auto px-4">
-      {/* Botón para crear un préstamo */}
+    <div className="mt-6 max-w-screen-xl mx-auto px-4">
+      {/* Botón para crear préstamo */}
       <div className="flex justify-center mb-6">
         <button
           onClick={() => setModalIsOpen(true)}
-          className="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors w-full sm:w-auto"
+          className="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition w-full sm:w-auto"
         >
           Crear Préstamo
         </button>
       </div>
 
-      {/* Tabla de Préstamos Activos */}
-      <div className="overflow-x-auto mb-6">
-        <table className="min-w-full table-auto text-sm text-gray-700">
-          <thead className="bg-gray-200">
+      {/* Tabla de Préstamos */}
+      <div className="overflow-x-auto mb-10">
+        <h2 className="text-xl font-bold mb-4">Préstamos</h2>
+        <table className="min-w-full table-auto text-sm text-gray-800">
+          <thead className="bg-gray-200 text-left">
             <tr>
-              <th className="px-4 py-2 text-left">Préstamo ID</th>
-              <th className="px-4 py-2 text-left">Total Prestado</th>
-              <th className="px-4 py-2 text-left">Cantidad de Cuotas</th>
-              <th className="px-4 py-2 text-left">Frecuencia de Pago</th>
+              <th className="px-4 py-2">Préstamo ID</th>
+              <th className="px-4 py-2">Total Prestado</th>
+              <th className="px-4 py-2">Cantidad de Cuotas</th>
+              <th className="px-4 py-2">Total a Pagar</th>
+              <th className="px-4 py-2">Frecuencia de Pago</th>
             </tr>
           </thead>
           <tbody>
@@ -55,6 +65,7 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
                 <td className="px-4 py-2">{prestamo.id}</td>
                 <td className="px-4 py-2">{prestamo.totalPrestado}</td>
                 <td className="px-4 py-2">{prestamo.cantidadCuotas}</td>
+                <td className="px-4 py-2">{prestamo.totalAPagar}</td>
                 <td className="px-4 py-2">{prestamo.frecuenciaPago}</td>
               </tr>
             ))}
@@ -62,12 +73,53 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
         </table>
       </div>
 
-      {/* Modal para crear un préstamo */}
+      {/* Buscador */}
+      <div className="mb-4">
+        <label className="block font-semibold mb-2">Buscar por Préstamo ID:</label>
+        <input
+          type="text"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+          placeholder="Ej: 1"
+          className="w-full sm:w-64 px-4 py-2 border rounded"
+        />
+      </div>
+
+      {/* Tabla de Cuotas */}
+      <div className="overflow-x-auto mb-10">
+        <h2 className="text-xl font-bold mb-4">Cuotas</h2>
+        <table className="min-w-full table-auto text-sm text-gray-800">
+          <thead className="bg-gray-200 text-left">
+            <tr>
+              <th className="px-4 py-2">Préstamo ID</th>
+              <th className="px-4 py-2"># Cuota</th>
+              <th className="px-4 py-2">Monto</th>
+              <th className="px-4 py-2">Fecha de Cobro</th>
+              <th className="px-4 py-2">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredCuotas.map((prestamo) =>
+              prestamo.cuotas?.map((cuota, index) => (
+                <tr key={`${prestamo.id}-${index}`} className="border-b">
+                  <td className="px-4 py-2">{prestamo.id}</td>
+                  <td className="px-4 py-2">{index + 1}</td>
+                  <td className="px-4 py-2">{cuota.monto}</td>
+                  <td className="px-4 py-2">{cuota.fecha}</td>
+                  <td className="px-4 py-2">{cuota.estado}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modal para crear préstamo */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={() => setModalIsOpen(false)}
         contentLabel="Crear Préstamo"
-        className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg"
+        className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg mt-20"
       >
         <h2 className="text-lg font-semibold mb-4">Nuevo Préstamo</h2>
         <div className="space-y-4">
@@ -105,7 +157,10 @@ const CuotasTable = ({ prestamosData, crearPrestamo }) => {
             <label>Cantidad a Devolver:</label>
             <input
               type="text"
-              value={nuevoPrestamo.cantidadCuotas * nuevoPrestamo.montoCuota}
+              value={
+                (parseFloat(nuevoPrestamo.montoCuota) || 0) *
+                (parseInt(nuevoPrestamo.cantidadCuotas) || 0)
+              }
               disabled
               className="w-full px-4 py-2 border rounded bg-gray-100"
             />
