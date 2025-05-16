@@ -10,9 +10,8 @@ const Products = ({ params }) => {
       dni: "12345678",
       name: "Sequeira Juan",
       product: "Auto",
-      Precio: "Activo",
+      Estado: "Activo",
       description: "Es programador",
-      type: "Auto",
       wsp:"5491139107801"
     },
   ];
@@ -36,6 +35,20 @@ const Products = ({ params }) => {
         { monto: 250000, fecha: "2024-09-01", estado: "Pagado" },
       ],
     },
+    {
+      id: 2,
+      totalPrestado: 5000,
+      totalAPagar:15000,
+      cantidadCuotas: 5,
+      frecuenciaPago: "Mensual",
+      capital:"Enzo",
+      cuotas: [
+        { monto: 250000, fecha: "2024-06-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-07-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-08-01", estado: "Pagado" },
+        { monto: 250000, fecha: "2024-09-01", estado: "Pendiente" },
+      ],
+    },
   ];
 
   const [prestamos, setPrestamos] = useState(prestamosData); // Inicializamos el estado con los préstamos existentes
@@ -57,6 +70,9 @@ const Products = ({ params }) => {
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-4 space-y-6">
+      <div>
+        Aqui
+      </div>
   {/* Componente de la carta principal */}
   <div className="bg-white rounded-lg shadow-md w-full sm:max-w-lg lg:max-w-xl overflow-hidden">
     {/* Slider de imágenes */}
@@ -93,7 +109,7 @@ const Products = ({ params }) => {
         {products[0].name}
       </h2>
       <p className="text-gray-600 mt-1">{products[0].description}</p>
-      <p className="text-green-600 font-bold mt-2">{products[0].Precio}</p>
+      <p className="text-green-600 font-bold mt-2">{products[0].Estado}</p>
 
       <a
         href={`https://wa.me/${products[0].wsp}`}

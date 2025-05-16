@@ -56,7 +56,7 @@ const NavBar = () => {
             <Link href="/Clientes">Clientes</Link>
           </li>
           <li>
-            <Link href="/contacto">Contacto</Link>
+            <Link href="/Cuotas">Cuotas</Link>
           </li>
         </ul>
       </div>
@@ -70,8 +70,8 @@ const NavBar = () => {
             </Link>
           </li>
           <li>
-            <Link href="/contacto" onClick={closeMenu}>
-              Contacto
+            <Link href="/Cuotas" onClick={closeMenu}>
+            Cuotas
             </Link>
           </li>
         </ul>

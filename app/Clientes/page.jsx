@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import Link from "next/link";
+import axios from "axios";
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre: "",
@@ -16,46 +18,34 @@ const Clientes = () => {
     estado: "En deuda",
   });
 
-  // Simulación de la carga de datos (puedes reemplazarla con una llamada a la API o similar)
   useEffect(() => {
-    setClientes([
-      {
-        id: 1,
-        nombre: "Juan",
-        apellido: "Pérez",
-        dniFrente: "dni-frente.jpg",
-        dniAtras: "dni-atras.jpg",
-        dni: "12345678",
-        whatsapp: "123456789",
-        estado: "En deuda",
-      },
-      {
-        id: 2,
-        nombre: "María",
-        apellido: "López",
-        dniFrente: "dni-frente2.jpg",
-        dniAtras: "dni-atras2.jpg",
-        dni: "87654321",
-        whatsapp: "987654321",
-        estado: "Pago",
-      },
-    ]);
-  }, []); // Este hook solo se ejecuta en el cliente
+    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/clientes`)
+      .then(res => setClientes(res.data))
+      .catch(err => console.error("Error al obtener clientes:", err));
+  }, []);
 
-  const agregarCliente = () => {
-    const nuevo = { ...nuevoCliente, id: Date.now() };
-    setClientes((prev) => [...prev, nuevo]);
-    setNuevoCliente({
-      nombre: "",
-      apellido: "",
-      dniFrente: "",
-      dniAtras: "",
-      dni: "",
-      whatsapp: "",
-      estado: "En deuda",
-    });
-    setMostrarFormulario(false);
+  const agregarCliente = async () => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/clientes`, nuevoCliente);
+      setClientes((prev) => [...prev, res.data]);
+      setNuevoCliente({
+        nombre: "",
+        apellido: "",
+        dniFrente: "",
+        dniAtras: "",
+        dni: "",
+        whatsapp: "",
+        estado: "En deuda",
+      });
+      setMostrarFormulario(false);
+    } catch (error) {
+      console.error("Error al agregar cliente:", error);
+    }
   };
+
+  const clientesFiltrados = clientes.filter((cliente) =>
+    cliente.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,10 +53,17 @@ const Clientes = () => {
       <div className="max-w-7xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Listado de Clientes</h1>
 
-        {/* Botón centrado y responsivo */}
-        <div className="flex justify-center mb-6">
+        <div className="mb-4 flex flex-col sm:flex-row justify-between gap-4 items-center">
+          <input
+            type="text"
+            placeholder="Buscar por nombre..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full sm:w-1/2 px-4 py-2 border rounded-md shadow-sm"
+          />
+
           <button
-            className="bg-blue-600 text-white px-6 py-3 rounded-md w-full sm:w-auto hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-6 py-2 rounded-md w-full sm:w-auto hover:bg-blue-700 transition-colors"
             onClick={() => setMostrarFormulario(true)}
           >
             Agregar Cliente
@@ -74,7 +71,7 @@ const Clientes = () => {
         </div>
 
         {mostrarFormulario && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 z-50 flex justify-center items-center p-4">
             <div className="bg-white p-6 rounded-md w-full sm:w-96">
               <h2 className="text-xl font-semibold mb-4">Nuevo Cliente</h2>
               <div className="space-y-4">
@@ -94,14 +91,14 @@ const Clientes = () => {
                     setNuevoCliente({ ...nuevoCliente, apellido: e.target.value })
                   }
                 />
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     type="file"
                     className="w-full sm:w-1/2 border px-3 py-2 rounded-md"
                     onChange={(e) =>
                       setNuevoCliente({
                         ...nuevoCliente,
-                        dniFrente: e.target.files[0]?.name ?? nuevoCliente.dniFrente,
+                        dniFrente: e.target.files?.[0]?.name ?? "",
                       })
                     }
                   />
@@ -111,7 +108,7 @@ const Clientes = () => {
                     onChange={(e) =>
                       setNuevoCliente({
                         ...nuevoCliente,
-                        dniAtras: e.target.files[0]?.name ?? nuevoCliente.dniAtras,
+                        dniAtras: e.target.files?.[0]?.name ?? "",
                       })
                     }
                   />
@@ -152,41 +149,43 @@ const Clientes = () => {
         )}
 
         <div className="overflow-x-auto mt-6">
-          <table className="min-w-full bg-white  shadow-md rounded-md table-auto">
+          <table className="min-w-full bg-white shadow-md rounded-md table-auto">
             <thead className="bg-gray-100">
               <tr>
                 <th className="text-left py-2 px-4">Nombre</th>
                 <th className="text-left py-2 px-4">Apellido</th>
                 <th className="text-left py-2 px-4">Número de DNI</th>
-                <th className="text-left py-2 px-4">Número de WhatsApp</th>
+                <th className="text-left py-2 px-4">WhatsApp</th>
                 <th className="text-left py-2 px-4">Estado</th>
               </tr>
             </thead>
             <tbody>
-              {clientes.map((cliente) => (
-                  <tr key={cliente.id} className="border-t">
-                    <Link href={`/home/${cliente.dni}`} key={cliente.dni}>
-                    <td className="py-2 px-4">{cliente.nombre}</td>
-                    </Link>
-                    <td className="py-2 px-4">{cliente.apellido}</td>
-                    <td className="py-2 px-4">{cliente.dni}</td>
-                    <td className="py-2 px-4">{cliente.whatsapp}</td>
-                    <td className="py-2 px-4">
-                      <span
-                        className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
-                          cliente.estado === "Pago"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {cliente.estado}
-                      </span>
-                    </td>
-                  </tr>
-                
+              {clientesFiltrados.map((cliente) => (
+                <tr key={cliente.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <Link href={`/home/${cliente.dni}`} className="contents">
+                    <td className="py-2 px-4 cursor-pointer">{cliente.nombre}</td>
+                  </Link>
+                  <td className="py-2 px-4">{cliente.apellido}</td>
+                  <td className="py-2 px-4">{cliente.dni}</td>
+                  <td className="py-2 px-4">{cliente.whatsapp}</td>
+                  <td className="py-2 px-4">
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${
+                        cliente.estado === "Pago"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {cliente.estado}
+                    </span>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
+          {clientesFiltrados.length === 0 && (
+            <p className="text-center py-6 text-gray-500">No se encontraron clientes.</p>
+          )}
         </div>
       </div>
     </div>
