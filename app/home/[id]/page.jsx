@@ -19,6 +19,7 @@ const ClientePage = ({ params }) => {
       try {
         const res = await fetch(`https://finantial-benefits-90a7e267027b.herokuapp.com/Clientes/${dni}`);
         const data = await res.json();
+        console.log(data);
         setCliente(data);
         setEditData({ name: data.name, apellido: data.apellido, descripcion: data.descripcion });
         setCurrentImage(0);
@@ -43,7 +44,7 @@ const ClientePage = ({ params }) => {
     const formData = new FormData();
     formData.append("name", editData.name);
     formData.append("apellido", editData.apellido);
-    formData.append("description", editData.descripcion);
+    formData.append("descripcion", editData.descripcion);
     if (dniFrente) formData.append("dni_frente", dniFrente);
     if (dniAtras) formData.append("dni_atras", dniAtras);
 
