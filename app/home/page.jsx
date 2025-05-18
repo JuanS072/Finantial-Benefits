@@ -9,14 +9,15 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-
+import useAuthRedirect from "../hooks/useAuthRedirect";
 const HomePage = () => {
+  useAuthRedirect();
   const [prestamos, setPrestamos] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/prestamos`);
+        const res = await axios.get(`https://finantial-benefits-90a7e267027b.herokuapp.com/prestamos/dashboard`);
         setPrestamos(res.data);
       } catch (err) {
         console.error("Error al obtener préstamos:", err);
@@ -52,7 +53,7 @@ const HomePage = () => {
 
     prestamos.forEach((p) => {
       p.cuotas?.forEach((c) => {
-        if (c.estado === "Pendiente" && c.fecha?.slice(0, 7) === mesActual) {
+        if (c.fecha?.slice(0, 7) === mesActual) {
           total += Number(c.monto || 0);
         }
       });

@@ -1,143 +1,199 @@
-'use client'
-
+'use client';
 import CuotasTable from "@/components/prestamos";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BiLogoWhatsapp } from "react-icons/bi";
+import useAuthRedirect from "../../hooks/useAuthRedirect";
 
-const Products = ({ params }) => {
-  const products = [
-    {
-      dni: "12345678",
-      name: "Sequeira Juan",
-      product: "Auto",
-      Estado: "Activo",
-      description: "Es programador",
-      wsp:"5491139107801"
-    },
-  ];
-
-  
-
-  // Ejemplo de cuotas (simulando que las cuotas son de diferentes clientes)
-  
-  const prestamosData = [
-    {
-      id: 1,
-      totalPrestado: 1000,
-      totalAPagar:5000,
-      cantidadCuotas: 4,
-      frecuenciaPago: "Mensual",
-      capital:"Juan",
-      cuotas: [
-        { monto: 250000, fecha: "2024-06-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-07-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-08-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-09-01", estado: "Pagado" },
-      ],
-    },
-    {
-      id: 2,
-      totalPrestado: 5000,
-      totalAPagar:15000,
-      cantidadCuotas: 5,
-      frecuenciaPago: "Mensual",
-      capital:"Enzo",
-      cuotas: [
-        { monto: 250000, fecha: "2024-06-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-07-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-08-01", estado: "Pagado" },
-        { monto: 250000, fecha: "2024-09-01", estado: "Pendiente" },
-      ],
-    },
-  ];
-
-  const [prestamos, setPrestamos] = useState(prestamosData); // Inicializamos el estado con los préstamos existentes
-
-  const crearPrestamo = (nuevoPrestamo) => {
-    // Aquí estamos actualizando el estado local de prestamos
-    setPrestamos((prevPrestamos) => [...prevPrestamos, nuevoPrestamo]);
-    console.log("Nuevo préstamo agregado:", nuevoPrestamo);
-  };
-  const actualizarEstado = (numero, nuevoEstado) => {
-    console.log(`Actualizar cuota ${numero} a ${nuevoEstado}`);
-  };
+const ClientePage = ({ params }) => {
+  useAuthRedirect();
+  const [cliente, setCliente] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editData, setEditData] = useState({ name: "", apellido: "", descripcion: "" });
+  const [dniFrente, setDniFrente] = useState(null);
+  const [dniAtras, setDniAtras] = useState(null);
+  const dni = params?.id;
+
+  useEffect(() => {
+    const fetchCliente = async () => {
+      try {
+        const res = await fetch(`https://finantial-benefits-90a7e267027b.herokuapp.com/Clientes/${dni}`);
+        const data = await res.json();
+        setCliente(data);
+        setEditData({ name: data.name, apellido: data.apellido, descripcion: data.descripcion });
+        setCurrentImage(0);
+      } catch (error) {
+        console.error("Error al obtener los datos del cliente:", error);
+      }
+    };
+    if (dni) fetchCliente();
+  }, [dni]);
+
+  if (!cliente) return <div className="p-4 text-center">Cargando cliente...</div>;
 
   const images = [
-    "data:image/jpeg;base64,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",
-    "https://via.placeholder.com/600x400?text=Auto+2"
+    { src: `${cliente.Dni_Img_Frente}`, alt: "DNI frente" },
+    { src: `${cliente.Dni_Img_Atras}`, alt: "DNI atrás" },
   ];
+  const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
+  const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("name", editData.name);
+    formData.append("apellido", editData.apellido);
+    formData.append("description", editData.descripcion);
+    if (dniFrente) formData.append("dni_frente", dniFrente);
+    if (dniAtras) formData.append("dni_atras", dniAtras);
+
+    try {
+      const res = await fetch(`https://finantial-benefits-90a7e267027b.herokuapp.com/Clientes/${dni}`, {
+        method: "PUT",
+        body: formData,
+      });
+      const updated = await res.json();
+      if (res.ok) {
+        setCliente(updated);
+        setIsEditModalOpen(false);
+      } else {
+        alert("Error al actualizar el cliente");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al actualizar");
+    }
+  };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 p-4 space-y-6">
-      <div>
-        Aqui
+    <div className="p-4 md:p-6 max-w-5xl mx-auto">
+      <div className="bg-white shadow-md rounded-xl p-4 md:p-6 mb-6">
+        {/* Carrusel */}
+        <div className="relative w-full max-w-md mx-auto mb-4">
+          <img
+            src={images[currentImage].src}
+            alt={images[currentImage].alt}
+            className="w-full h-64 sm:h-72 md:h-80 object-cover rounded-lg border"
+          />
+          <button
+            onClick={prevImage}
+            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full p-1 shadow hover:bg-opacity-100"
+          >
+            ‹
+          </button>
+          <button
+            onClick={nextImage}
+            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white bg-opacity-80 rounded-full p-1 shadow hover:bg-opacity-100"
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Info Cliente */}
+        <h1 className="text-xl sm:text-2xl font-semibold mb-2">
+          {cliente.name} {cliente.apellido}
+        </h1>
+        <h2 className="text-lg sm:text-xl mb-2">DNI: {cliente.dni}</h2>
+        <p className="text-sm md:text-base mb-3">{cliente.descripcion}</p>
+
+        {cliente.wsp && (
+          <a
+            href={`https://wa.me/${cliente.wsp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-green-600 text-sm hover:underline mb-4"
+          >
+            <BiLogoWhatsapp className="mr-2 text-xl" />
+            Contactar por WhatsApp
+          </a>
+        )}
+
+        {/* Botón editar debajo */}
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+          >
+            Editar Cliente
+          </button>
+        </div>
       </div>
-  {/* Componente de la carta principal */}
-  <div className="bg-white rounded-lg shadow-md w-full sm:max-w-lg lg:max-w-xl overflow-hidden">
-    {/* Slider de imágenes */}
-    <div className="relative">
-      <img
-        src={images[currentImage]}
-        alt="Producto"
-        className="w-full h-64 sm:h-80 object-cover"
-      />
-      <button
-        className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-500 text-white p-2 rounded-full"
-        onClick={() =>
-          setCurrentImage((prev) =>
-            prev === 0 ? images.length - 1 : prev - 1
-          )
-        }
-      >
-        &lt;
-      </button>
-      <button
-        className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-500 text-white p-2 rounded-full"
-        onClick={() =>
-          setCurrentImage((prev) =>
-            prev === images.length - 1 ? 0 : prev + 1
-          )
-        }
-      >
-        &gt;
-      </button>
+
+      {/* Tabla de cuotas */}
+      <div className="bg-white shadow-md rounded-xl p-4 md:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">Historial de Préstamos</h2>
+        <div className="overflow-x-auto">
+          <CuotasTable dniCliente={dni} />
+        </div>
+      </div>
+
+      {/* Modal editar */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-center p-4">
+          <div className="bg-white rounded-xl p-6 max-w-lg w-full">
+            <h3 className="text-xl font-semibold mb-4">Editar Cliente</h3>
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Nombre"
+                value={editData.name}
+                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                className="w-full border p-2 rounded"
+              />
+              <input
+                type="text"
+                placeholder="Apellido"
+                value={editData.apellido}
+                onChange={(e) => setEditData({ ...editData, apellido: e.target.value })}
+                className="w-full border p-2 rounded"
+              />
+              <textarea
+                placeholder="Descripción"
+                value={editData.descripcion}
+                onChange={(e) => setEditData({ ...editData, descripcion: e.target.value })}
+                className="w-full border p-2 rounded"
+              />
+              <div>
+                <label className="block text-sm font-medium mb-1">DNI Frente</label>
+                <input
+                  type="file"
+                  name="dni_frente"
+                  accept="image/*"
+                  onChange={(e) => setDniFrente(e.target.files[0])}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">DNI Atrás</label>
+                <input
+                  type="file"
+                  name="dni_atras"
+                  accept="image/*"
+                  onChange={(e) => setDniAtras(e.target.files[0])}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 border rounded text-gray-700 hover:bg-gray-100"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
-
-    <div className="p-4 text-center">
-      <h2 className="text-2xl font-semibold text-gray-800">
-        {products[0].name}
-      </h2>
-      <p className="text-gray-600 mt-1">{products[0].description}</p>
-      <p className="text-green-600 font-bold mt-2">{products[0].Estado}</p>
-
-      <a
-        href={`https://wa.me/${products[0].wsp}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-      >
-        <BiLogoWhatsapp className="text-2xl" />
-        Mandar WhatsApp
-      </a>
-    </div>
-  </div>
-
-  {/* Componente CuotasTable debajo de la carta principal */}
-  <div className="w-full sm:max-w-lg lg:max-w-xl">
-    <CuotasTable
-      
-      prestamosData={prestamosData}
-      crearPrestamo={crearPrestamo}
-      dniCliente={products[0].dni}
-      filtro="Todos"
-      setFiltro={() => {}}
-      actualizarEstado={actualizarEstado}
-    />
-  </div>
-</div>
-    
   );
 };
 
-export default Products;
+export default ClientePage;

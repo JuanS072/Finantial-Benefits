@@ -1,8 +1,10 @@
 'use client';
 import { useState, useMemo, useEffect } from "react";
 import NavBar from "@/components/NavBar";
+import useAuthRedirect from "../hooks/useAuthRedirect";
 
 const Cuotas = () => {
+  useAuthRedirect();
   const hoy = new Date().toISOString().slice(0, 7); // YYYY-MM
   const [filtroMes, setFiltroMes] = useState(hoy);
   const [cuotas, setCuotas] = useState([]);
@@ -10,7 +12,7 @@ const Cuotas = () => {
   useEffect(() => {
     const fetchCuotas = async () => {
       try {
-        const res = await fetch(`http://localhost:3306/cuotas?mes=${filtroMes}`);
+        const res = await fetch(`https://finantial-benefits-90a7e267027b.herokuapp.com/cuotas?mes=${filtroMes}`);
         const data = await res.json();
         setCuotas(data);
       } catch (error) {
@@ -22,16 +24,17 @@ const Cuotas = () => {
   }, [filtroMes]);
 
   const cuotasFiltradas = useMemo(() => {
-    return cuotas.filter(c => c.estado === "Pendiente");
+    return cuotas?.filter(c => c.estado === "Pendiente");
   }, [cuotas]);
 
   const total = cuotasFiltradas.reduce((acc, c) => acc + Number(c.monto), 0);
 
   const marcarComoPagado = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3306/cuotas/${id}/pagar`, {
+      const res = await fetch(`https://finantial-benefits-90a7e267027b.herokuapp.com/cuotas/${id}/pagar`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: "Pagado" })
       });
 
       if (res.ok) {

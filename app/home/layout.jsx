@@ -1,4 +1,5 @@
 import NavBar from "@/components/NavBar"
+import useAuthRedirect from "../hooks/useAuthRedirect";
 
 const HomeLayout = ({children}) => {
   return (

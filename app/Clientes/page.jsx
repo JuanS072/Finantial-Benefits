@@ -3,38 +3,40 @@ import { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import Link from "next/link";
 import axios from "axios";
+import useAuthRedirect from "../hooks/useAuthRedirect";
 
 const Clientes = () => {
+  useAuthRedirect();
   const [clientes, setClientes] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({
-    nombre: "",
+    name: "",
     apellido: "",
     dniFrente: "",
     dniAtras: "",
     dni: "",
-    whatsapp: "",
+    wsp: "",
     estado: "En deuda",
   });
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/clientes`)
+    axios.get(`https://finantial-benefits-90a7e267027b.herokuapp.com/Clientes`)
       .then(res => setClientes(res.data))
       .catch(err => console.error("Error al obtener clientes:", err));
   }, []);
 
   const agregarCliente = async () => {
     try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/clientes`, nuevoCliente);
+      const res = await axios.post(`https://finantial-benefits-90a7e267027b.herokuapp.com/Clientes/Crear`, nuevoCliente);
       setClientes((prev) => [...prev, res.data]);
       setNuevoCliente({
-        nombre: "",
+        name: "",
         apellido: "",
         dniFrente: "",
         dniAtras: "",
         dni: "",
-        whatsapp: "",
+        wsp: "",
         estado: "En deuda",
       });
       setMostrarFormulario(false);
@@ -44,7 +46,7 @@ const Clientes = () => {
   };
 
   const clientesFiltrados = clientes.filter((cliente) =>
-    cliente.nombre.toLowerCase().includes(busqueda.toLowerCase())
+    cliente.name?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
@@ -78,9 +80,9 @@ const Clientes = () => {
                 <input
                   className="w-full border px-3 py-2 rounded-md"
                   placeholder="Nombre"
-                  value={nuevoCliente.nombre}
+                  value={nuevoCliente.name}
                   onChange={(e) =>
-                    setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })
+                    setNuevoCliente({ ...nuevoCliente, name: e.target.value })
                   }
                 />
                 <input
@@ -124,9 +126,9 @@ const Clientes = () => {
                 <input
                   className="w-full border px-3 py-2 rounded-md"
                   placeholder="Número de WhatsApp"
-                  value={nuevoCliente.whatsapp}
+                  value={nuevoCliente.wsp}
                   onChange={(e) =>
-                    setNuevoCliente({ ...nuevoCliente, whatsapp: e.target.value })
+                    setNuevoCliente({ ...nuevoCliente, wsp: e.target.value })
                   }
                 />
               </div>
@@ -163,11 +165,11 @@ const Clientes = () => {
               {clientesFiltrados.map((cliente) => (
                 <tr key={cliente.id} className="border-t hover:bg-gray-50 transition-colors">
                   <Link href={`/home/${cliente.dni}`} className="contents">
-                    <td className="py-2 px-4 cursor-pointer">{cliente.nombre}</td>
+                    <td className="py-2 px-4 cursor-pointer">{cliente.name}</td>
                   </Link>
                   <td className="py-2 px-4">{cliente.apellido}</td>
                   <td className="py-2 px-4">{cliente.dni}</td>
-                  <td className="py-2 px-4">{cliente.whatsapp}</td>
+                  <td className="py-2 px-4">{cliente.wsp}</td>
                   <td className="py-2 px-4">
                     <span
                       className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${

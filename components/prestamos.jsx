@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 
-const CuotasTable = () => {
+const API_BASE = "https://finantial-benefits-90a7e267027b.herokuapp.com";
+
+const CuotasTable = ({ dniCliente }) => {
   const [prestamos, setPrestamos] = useState([]);
   const [prestamoSeleccionado, setPrestamoSeleccionado] = useState(null);
   const [cuotas, setCuotas] = useState([]);
@@ -16,33 +18,32 @@ const CuotasTable = () => {
     montoCuota: "",
     frecuenciaPago: "Mensual",
     capital: "Juan",
+    estado:"Vigente"
   });
 
-  // Buscar préstamos por DNI
-  const buscarPrestamos = async (dni) => {
-    if (!dni.trim()) {
-      setPrestamos([]);
-      setPrestamoSeleccionado(null);
-      setCuotas([]);
-      return;
+  useEffect(() => {
+    if (dniCliente) {
+      buscarPrestamos(dniCliente);
+      setDniBusqueda(dniCliente);
     }
+  }, [dniCliente]);
+
+  const buscarPrestamos = async (dni = dniBusqueda) => {
+    if (!dni.trim()) return;
     try {
-      const res = await axios.get(`/prestamos?dni=${dni}`);
+      const res = await axios.get(`${API_BASE}/prestamos/dni/${dni}`);
+
       setPrestamos(res.data);
       setPrestamoSeleccionado(null);
       setCuotas([]);
     } catch (error) {
       console.error("Error buscando préstamos:", error);
-      setPrestamos([]);
-      setPrestamoSeleccionado(null);
-      setCuotas([]);
     }
   };
 
-  // Obtener cuotas por préstamo
   const obtenerCuotas = async (idPrestamo) => {
     try {
-      const res = await axios.get(`/prestamos/${idPrestamo}/cuotas`);
+      const res = await axios.get(`${API_BASE}/cuotas/prestamos/${idPrestamo}/cuotas`);
       setCuotas(res.data);
     } catch (error) {
       console.error("Error obteniendo cuotas:", error);
@@ -50,19 +51,28 @@ const CuotasTable = () => {
     }
   };
 
-  // Crear nuevo préstamo
-  const crearPrestamo = async () => {
+  const cambiarEstadoCuota = async (idCuota, nuevoEstado) => {
     try {
-      await axios.post("/prestamos", {
-        dniCliente: nuevoPrestamo.dniCliente,
-        totalPrestado: parseFloat(nuevoPrestamo.totalPrestado),
-        totalAPagar:
-          parseFloat(nuevoPrestamo.montoCuota) *
-          parseInt(nuevoPrestamo.cantidadCuotas),
-        frecuenciaPago: nuevoPrestamo.frecuenciaPago,
-        cantidadCuotas: parseInt(nuevoPrestamo.cantidadCuotas),
-        capital: nuevoPrestamo.capital,
-      });
+      await axios.patch(`${API_BASE}/cuotas/${idCuota}/pagar`, { estado: nuevoEstado });
+      if (prestamoSeleccionado) obtenerCuotas(prestamoSeleccionado.id);
+    } catch (error) {
+      console.error("Error cambiando estado de cuota:", error);
+    }
+  };
+
+  const crearPrestamo = async () => {
+    const payload = {
+      dni_Cliente: nuevoPrestamo.dniCliente,
+      Total_Prestado: parseFloat(nuevoPrestamo.totalPrestado),
+      Cant_Cuotas: parseInt(nuevoPrestamo.cantidadCuotas),
+      Monto_Cuota: parseFloat(nuevoPrestamo.montoCuota),
+      Frecuencia_de_Pago: nuevoPrestamo.frecuenciaPago,
+      Capital: nuevoPrestamo.capital,
+      estado: nuevoPrestamo.estado,
+    };
+
+    try {
+      await axios.post(`${API_BASE}/prestamos`, payload);
       setModalAbierto(false);
       setNuevoPrestamo({
         dniCliente: "",
@@ -71,64 +81,52 @@ const CuotasTable = () => {
         montoCuota: "",
         frecuenciaPago: "Mensual",
         capital: "Juan",
+        estado:"Vigente"
       });
-      buscarPrestamos(nuevoPrestamo.dniCliente);
+      buscarPrestamos();
     } catch (error) {
       console.error("Error creando préstamo:", error);
     }
   };
 
-  // Cambiar estado de cuota
-  const cambiarEstadoCuota = async (idCuota, estadoNuevo) => {
-    try {
-      await axios.patch(`/cuotas/${idCuota}/pagar`, { estado: estadoNuevo });
-      if (prestamoSeleccionado) obtenerCuotas(prestamoSeleccionado.id);
-    } catch (error) {
-      console.error("Error cambiando estado cuota:", error);
-    }
-  };
+  const cuotasFiltradas = cuotas.filter((c) =>
+    filtroEstado ? c.estado === filtroEstado : true
+  );
 
-  // Manejo inputs nuevo préstamo
   const onInputChange = (e) => {
     const { name, value } = e.target;
     setNuevoPrestamo((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Cuotas filtradas por estado
-  const cuotasFiltradas = cuotas.filter((c) =>
-    filtroEstado ? c.estado === filtroEstado : true
-  );
-
   return (
-    <div className="max-w-screen-xl mx-auto px-4 mt-6">
+    <div className="max-w-screen-xl mx-auto px-4 py-6">
       {/* Controles */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <button
-          className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           onClick={() => setModalAbierto(true)}
         >
           Crear Préstamo
         </button>
-
-        <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <input
             type="text"
-            placeholder="Buscar préstamos por DNI"
+            placeholder="Buscar por DNI"
             value={dniBusqueda}
             onChange={(e) => setDniBusqueda(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && buscarPrestamos(dniBusqueda)}
+            onKeyDown={(e) => e.key === "Enter" && buscarPrestamos()}
             className="border rounded px-4 py-2 w-full sm:w-64"
           />
           <button
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-            onClick={() => buscarPrestamos(dniBusqueda)}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            onClick={buscarPrestamos}
           >
             Buscar
           </button>
           <select
-            className="border rounded px-4 py-2 w-full sm:w-48"
             value={filtroEstado}
             onChange={(e) => setFiltroEstado(e.target.value)}
+            className="border rounded px-4 py-2 w-full sm:w-48"
           >
             <option value="">Todos</option>
             <option value="Pendiente">Pendiente</option>
@@ -138,11 +136,13 @@ const CuotasTable = () => {
         </div>
       </div>
 
-      {/* Lista de préstamos */}
-      <h2 className="text-xl font-semibold mb-4">Préstamos para DNI: {dniBusqueda}</h2>
-      <div className="overflow-x-auto mb-10">
-        <table className="min-w-full text-left text-gray-800 text-sm table-auto">
-          <thead className="bg-gray-200">
+      {/* Tabla de préstamos */}
+      <h2 className="text-lg font-semibold mb-2">
+        Préstamos de DNI: {dniBusqueda}
+      </h2>
+      <div className="overflow-x-auto mb-8">
+        <table className="min-w-full table-auto text-sm">
+          <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2">ID</th>
               <th className="px-4 py-2">Total Prestado</th>
@@ -161,12 +161,11 @@ const CuotasTable = () => {
               </tr>
             ) : (
               prestamos.map((p) => {
-                const estado =
-                  p.cuotas?.some((c) => c.estado !== "Pagado") ? "Vigente" : "Finalizado";
+                const estado = p.estado;
                 return (
                   <tr
                     key={p.id}
-                    className="border-b bg-white cursor-pointer hover:bg-gray-100"
+                    className="border-b hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       setPrestamoSeleccionado(p);
                       obtenerCuotas(p.id);
@@ -177,7 +176,9 @@ const CuotasTable = () => {
                     <td className="px-4 py-2">{p.totalAPagar}</td>
                     <td className="px-4 py-2">{p.cantidadCuotas}</td>
                     <td className="px-4 py-2">{estado}</td>
-                    <td className="px-4 py-2 text-blue-600 underline">Ver cuotas</td>
+                    <td className="px-4 py-2 text-blue-600 underline">
+                      Ver cuotas
+                    </td>
                   </tr>
                 );
               })
@@ -186,17 +187,18 @@ const CuotasTable = () => {
         </table>
       </div>
 
-      {/* Cuotas del préstamo seleccionado */}
+      {/* Tabla de cuotas */}
       {prestamoSeleccionado && (
-        <>
-          <h2 className="text-xl font-semibold mb-4">
+        <div>
+          <h2 className="text-lg font-semibold mb-2">
             Cuotas del préstamo #{prestamoSeleccionado.id}
           </h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-gray-800 text-sm table-auto">
-              <thead className="bg-gray-200">
+            <table className="min-w-full table-auto text-sm">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-4 py-2"># Cuota</th>
+                  <th className="px-4 py-2">#Id Cuota</th>
+                  <th className="px-4 py-2">#Num Cuota</th>
                   <th className="px-4 py-2">Monto</th>
                   <th className="px-4 py-2">Fecha</th>
                   <th className="px-4 py-2">Estado</th>
@@ -206,19 +208,22 @@ const CuotasTable = () => {
                 {cuotasFiltradas.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="text-center py-4 text-gray-500">
-                      No hay cuotas que mostrar
+                      No hay cuotas para mostrar
                     </td>
                   </tr>
                 ) : (
                   cuotasFiltradas.map((cuota) => (
-                    <tr key={cuota.id} className="border-b bg-white">
-                      <td className="px-4 py-2">{cuota.numero}</td>
+                    <tr key={cuota.id} className="border-b">
+                      <td className="px-4 py-2">{cuota.idCuota}</td>
+                      <td className="px-4 py-2">{cuota.numeroCuota}</td>
                       <td className="px-4 py-2">{cuota.monto}</td>
                       <td className="px-4 py-2">{cuota.fecha}</td>
                       <td className="px-4 py-2">
                         <select
                           value={cuota.estado}
-                          onChange={(e) => cambiarEstadoCuota(cuota.id, e.target.value)}
+                          onChange={(e) =>
+                            cambiarEstadoCuota(cuota.idCuota, e.target.value)
+                          }
                           className="border rounded px-2 py-1 w-full sm:w-auto"
                         >
                           <option value="Pendiente">Pendiente</option>
@@ -232,10 +237,10 @@ const CuotasTable = () => {
               </tbody>
             </table>
           </div>
-        </>
+        </div>
       )}
 
-      {/* Modal crear préstamo */}
+      {/* Modal para crear préstamo */}
       <Modal
         isOpen={modalAbierto}
         onRequestClose={() => setModalAbierto(false)}
@@ -244,46 +249,23 @@ const CuotasTable = () => {
       >
         <h2 className="text-lg font-semibold mb-4">Nuevo Préstamo</h2>
         <div className="space-y-4">
-          <input
-            type="text"
-            name="dniCliente"
-            placeholder="DNI Cliente"
-            value={nuevoPrestamo.dniCliente}
-            onChange={onInputChange}
-            className="w-full border rounded px-4 py-2"
-          />
-          <input
-            type="number"
-            name="totalPrestado"
-            placeholder="Total Prestado"
-            value={nuevoPrestamo.totalPrestado}
-            onChange={onInputChange}
-            className="w-full border rounded px-4 py-2"
-          />
-          <input
-            type="number"
-            name="cantidadCuotas"
-            placeholder="Cantidad de Cuotas"
-            value={nuevoPrestamo.cantidadCuotas}
-            onChange={onInputChange}
-            className="w-full border rounded px-4 py-2"
-          />
-          <input
-            type="number"
-            name="montoCuota"
-            placeholder="Monto por Cuota"
-            value={nuevoPrestamo.montoCuota}
-            onChange={onInputChange}
-            className="w-full border rounded px-4 py-2"
-          />
-          <input
-            type="text"
-            name="capital"
-            placeholder="Capital"
-            value={nuevoPrestamo.capital}
-            onChange={onInputChange}
-            className="w-full border rounded px-4 py-2"
-          />
+          {[
+            { name: "dniCliente", placeholder: "DNI Cliente" },
+            { name: "totalPrestado", type: "number", placeholder: "Total Prestado" },
+            { name: "cantidadCuotas", type: "number", placeholder: "Cantidad de Cuotas" },
+            { name: "montoCuota", type: "number", placeholder: "Monto por Cuota" },
+            { name: "capital", placeholder: "Capital" },
+          ].map((input) => (
+            <input
+              key={input.name}
+              type={input.type || "text"}
+              name={input.name}
+              placeholder={input.placeholder}
+              value={nuevoPrestamo[input.name]}
+              onChange={onInputChange}
+              className="w-full border rounded px-4 py-2"
+            />
+          ))}
           <select
             name="frecuenciaPago"
             value={nuevoPrestamo.frecuenciaPago}
@@ -291,19 +273,20 @@ const CuotasTable = () => {
             className="w-full border rounded px-4 py-2"
           >
             <option value="Mensual">Mensual</option>
+            <option value="Semanal">Semanal</option>
             <option value="Quincenal">Quincenal</option>
           </select>
         </div>
         <div className="mt-6 flex justify-end gap-4">
           <button
             onClick={() => setModalAbierto(false)}
-            className="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
           >
             Cancelar
           </button>
           <button
             onClick={crearPrestamo}
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Crear
           </button>
